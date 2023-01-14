@@ -31,66 +31,31 @@ from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
 
 
-
 fig = plt.figure()
 st.title('Dental Curie detection')
 st.markdown("Prediction : (Dental Problems)")
 
 def predict(image):
-    classifier_model = 'newclass04.h5'
+    classifier_model = 'VGG16-Model.h5'
     model=keras.models.load_model(classifier_model)
 
-
-
-    test_image = image.resize((244, 244))
+    from keras import applications
+    vgg16 = applications.VGG16(include_top=False, weights='imagenet')
+    test_image = image.resize((224, 224))
     test_image = np.array(test_image)
     test_image = test_image / 255.0
     test_image = np.expand_dims(test_image, axis=0)
     class_names = {0: 'CAVITY', 1: 'COLD SORES',2:"DEAD TOOTH",3:"GINGIVITY",4:"HEALTHY"}
-    predictions = model.predict(test_image)
+    bt_prediction = vgg16.predict(test_image)
+    preds = model.predict(bt_prediction)
+    labels = ['Cavity','Cold','Dead','Gingivitis','Healthy']
+    for idx, animal, x in zip(range(0,6), labels , preds[0]):
+        print("ID: {}, Label: {} {}%".format(idx, animal, round(x*100,2)))
+    predictions=preds
     print(predictions)
     a=np.array(max(predictions))
     print(class_names[np.argmax(a)])
     result = f"Predicted as {class_names[np.argmax(a)]} with {(max(a)*100).__round__(2)} % confidence. "
-
-    return result
-
-# ========================================================
-
-
-def pred(image):
-    from keras.models import load_model
-    from PIL import Image, ImageOps
-    import numpy as np
-
-    # Load the model
-    model = load_model('keras_model.h5')
-
-    # Create the array of the right shape to feed into the keras model
-    # The 'length' or number of images you can put into the array is
-    # determined by the first position in the shape tuple, in this case 1.
-    data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
-    # Replace this with the path to your image
-    # resize the image to a 224x224 with the same strategy as in TM2:
-    # resizing the image to be at least 224x224 and then cropping from the center
-    size = (224, 224)
-    image = ImageOps.fit(image, size, Image.ANTIALIAS)
-    class_names = {0: 'CAVITY', 1: 'COLD SORES',2:"DEAD TOOTH",3:"GINGIVITY",4:"HEALTHY"}
-    # turn the image into a numpy array
-    image_array = np.asarray(image)
-    # Normalize the image
-    normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
-    # Load the image into the array
-    data[0] = normalized_image_array
-
-    # run the inference
-    prediction = model.predict(data)
-    print(prediction)
-    a = np.array(max(prediction))
-    print(class_names[np.argmax(a)])
-    result = f"Predicted as {class_names[np.argmax(a)]} with {(max(a) * 100).__round__(2)} % confidence. "
-
-
 
     return result
 
